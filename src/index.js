@@ -7,7 +7,7 @@ const currentLocation = document.querySelector("#get-current-location");
 
 ////Event Listeners//////
 
-searchButton.addEventListener("click", handelSearch);
+searchButton.addEventListener("click", () => handelSearch(search.value));
 search.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     handelSearch();
@@ -16,18 +16,22 @@ search.addEventListener("keypress", (e) => {
 currentLocation.addEventListener("click", getCurrentLocation);
 
 async function handelSearch() {
-  const data = await fetchWether();
+  const data = await fetchWether(search.value);
   displayWeather(data);
+}
+
+function kelvinToCelsius(kelvin) {
+  return kelvin - 273.15;
 }
 
 ////////////fetch wether from search/////////////////
 
-async function fetchWether() {
+async function fetchWether(name) {
   let data1 = [];
   let data2 = [];
   try {
     const req = await fetch(
-      `https://api.openweathermap.org/data/2.5/weather?q=${search.value}&appid=${API_KEY}`
+      `https://api.openweathermap.org/data/2.5/weather?q=${name}&appid=${API_KEY}`
     );
     if (!req.ok) {
       throw new Error(`shandel: ${req.statusText}`);
@@ -40,7 +44,7 @@ async function fetchWether() {
 
   try {
     const req = await fetch(
-      `https://api.openweathermap.org/data/2.5/forecast?q=${search.value}&appid=${API_KEY}`
+      `https://api.openweathermap.org/data/2.5/forecast?q=${name}&appid=${API_KEY}`
     );
     if (!req.ok) {
       throw new Error(`shandel: ${req.statusText}`);
@@ -54,12 +58,32 @@ async function fetchWether() {
   return { data1, data2 };
 }
 
-function kelvinToCelsius(kelvin) {
-  return kelvin - 273.15;
+////////////////////current location////////////////////
+function getCurrentLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition((position) => {
+      const { latitude, longitude } = position.coords;
+      fetch(
+        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric`
+      )
+        .then((response) => response.json())
+        .then(async (data) => {
+          const res = await fetchWether(data.name);
+          displayWeather(res);
+        });
+    });
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
 }
 
 ///////////////////Display data from search ///////////////////
 function displayWeather({ data1, data2 }) {
+  displayMainForcast(data1);
+  display5DaysForcase(data2);
+}
+
+function displayMainForcast(data1) {
   const location = document.querySelector("#location");
   const mainTemp = document.querySelector("#main-temp");
   const weatherImg = document.querySelector("#main-weather-img");
@@ -70,7 +94,6 @@ function displayWeather({ data1, data2 }) {
   const windSpeed = document.querySelector("#main-wind-speed");
   const humidity = document.querySelector("#humidity-bar");
   const clouds = document.querySelector("#clouds-bar");
-  console.log(data1.clouds.all);
 
   location.innerHTML = data1.name;
   mainTemp.innerHTML = kelvinToCelsius(data1.main.temp).toFixed(1);
@@ -84,20 +107,37 @@ function displayWeather({ data1, data2 }) {
   humidity.style.width = `${data1.main.humidity}%`;
 }
 
-////////////////////current location////////////////////
-function getCurrentLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition((position) => {
-      const { latitude, longitude } = position.coords;
-      fetch(
-        `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${API_KEY}&units=metric`
-      )
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data);
-        });
-    });
-  } else {
-    alert("Geolocation is not supported by this browser.");
-  }
+function display5DaysForcase(data) {
+  const forcastDays = document.querySelector("#forcast-days");
+  console.log(data);
+  const forecastList = data.list.filter((_, index) => index % 8 === 0);
+  console.log(forecastList);
+
+  let forecastHTML = ""; // Accumulate forecast HTML
+
+  forecastList.forEach((forcast) => {
+    const date = new Date(forcast.dt_txt);
+    const forecastData = `
+      <div class="shadow-lg bg-violet-400 text-violet-50 rounded-md py-4 px-6 text-sm">
+        <div class="">${new Date(forcast.dt_txt)
+          .toLocaleDateString()
+          .replaceAll("/", "-")}</div>
+        <div class="text-center text-2xl my-2">
+          <img
+            id="main-weather-img"
+            class="h-16 inline-block object-cover object-center"
+            src="https://openweathermap.org/img/wn/${
+              forcast.weather[0].icon
+            }@2x.png"
+            alt="weather"
+          />
+          ${kelvinToCelsius(forcast.main.temp).toFixed(1)}<sup>&deg;</sup>C
+        </div>
+        <div>Wind:<span class="ml-2">${forcast.wind.speed} m/s</span></div>
+        <div>Humidity:<span class="ml-2">${forcast.main.humidity}%</span></div>
+      </div>`;
+    forecastHTML += forecastData; // Accumulate HTML
+  });
+
+  forcastDays.innerHTML = forecastHTML; // Set innerHTML once
 }
