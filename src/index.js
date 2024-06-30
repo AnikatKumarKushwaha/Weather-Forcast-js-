@@ -17,6 +17,7 @@ currentLocation.addEventListener("click", getCurrentLocation);
 
 async function handelSearch() {
   const data = await fetchWether(search.value);
+  updateRecentSearch();
   displayWeather(data);
 }
 
@@ -34,12 +35,14 @@ async function fetchWether(name) {
       `https://api.openweathermap.org/data/2.5/weather?q=${name}&appid=${API_KEY}`
     );
     if (!req.ok) {
-      throw new Error(`shandel: ${req.statusText}`);
+      throw new Error(`Error ${req.status}: ${req.statusText}`);
     }
     const data = await req.json();
+    saveToLocalStorage(data.name);
     data1 = data;
   } catch (err) {
-    console.log("error", err);
+    showPopupMessage(err.message);
+    console.log("error", err.message);
   }
 
   try {
@@ -47,12 +50,12 @@ async function fetchWether(name) {
       `https://api.openweathermap.org/data/2.5/forecast?q=${name}&appid=${API_KEY}`
     );
     if (!req.ok) {
-      throw new Error(`shandel: ${req.statusText}`);
+      throw new Error(`Error ${req.status}: ${req.statusText}`);
     }
     const data = await req.json();
     data2 = data;
   } catch (err) {
-    console.log("error", err);
+    console.log("error", err.message);
   }
 
   return { data1, data2 };
@@ -76,6 +79,74 @@ function getCurrentLocation() {
     alert("Geolocation is not supported by this browser.");
   }
 }
+////////////////////Local Storage//////////////////
+function saveToLocalStorage(city) {
+  let cities = JSON.parse(localStorage.getItem("recentCities")) || [];
+
+  cities = cities.filter((item) => item !== city);
+  cities.unshift(city);
+  if (cities.length > 5) {
+    cities.pop();
+  }
+  localStorage.setItem("recentCities", JSON.stringify(cities));
+
+  const recentCitiesContainer = document.querySelector(
+    "#recent-cities-container"
+  );
+  if (cities.length === 0) {
+    recentCitiesContainer.style.display = "none";
+  } else {
+    recentCitiesContainer.style.display = "block";
+  }
+
+  // Update the dropdown options
+  updateRecentSearch();
+}
+
+function updateRecentSearch() {
+  const cities = JSON.parse(localStorage.getItem("recentCities")) || [];
+  const recentCitiesContainer = document.querySelector(
+    "#recent-cities-container"
+  );
+
+  const dropdown = document.getElementById("select-place");
+
+  // Clear existing options except the default one
+  dropdown
+    .querySelectorAll('option:not([value=""])')
+    .forEach((option) => option.remove());
+
+  if (cities.length === 0) {
+    recentCitiesContainer.style.display = "none";
+  } else {
+    cities.forEach((city) => {
+      const option = document.createElement("option");
+      option.value = city;
+      option.textContent = city;
+      dropdown.appendChild(option);
+    });
+    recentCitiesContainer.style.display = "block";
+  }
+
+  // Add change event listener
+  dropdown.addEventListener("change", handleCitySelection);
+}
+
+async function handleCitySelection(event) {
+  const selectedCity = event.target.value;
+  if (selectedCity) {
+    const data = await fetchWether(selectedCity);
+    displayWeather(data);
+  }
+}
+
+function loadRecentSearches() {
+  updateRecentSearch();
+}
+
+window.onload = () => {
+  loadRecentSearches();
+};
 
 ///////////////////Display data from search ///////////////////
 function displayWeather({ data1, data2 }) {
@@ -140,4 +211,29 @@ function display5DaysForcase(data) {
   });
 
   forcastDays.innerHTML = forecastHTML; // Set innerHTML once
+}
+
+///handel error
+
+function showPopupMessage(message) {
+  const popup = document.getElementById("popup-message");
+  if (message === "Error 404: Not Found") {
+    message = "Please enter a valid city name.";
+  } else if (message === "Failed to fetch") {
+    message = "No internet connection or an error occurred. Please try again.";
+  }
+  popup.innerHTML = `
+    <span class="text-red-500 text-lg mr-4">
+      <i class="fa-regular fa-circle-xmark"></i>
+    </span>
+    ${message}
+  `;
+
+  popup.style.visibility = "visible";
+  popup.style.opacity = 1;
+
+  setTimeout(() => {
+    popup.style.opacity = 0;
+    popup.style.visibility = "hidden";
+  }, 3000);
 }
