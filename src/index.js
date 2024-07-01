@@ -1,35 +1,41 @@
+////////OpenWeatherMap Api//////////////
 const API_KEY = "62620b75d1d1b2e18affe7571a49317a";
 
-//selectors
+////////selectors/////////////
 const search = document.querySelector("#search");
 const searchButton = document.querySelector("#search-button");
 const currentLocation = document.querySelector("#get-current-location");
+const loadingSpinner = document.querySelector("#loadingSpinner");
 
-////Event Listeners//////
-
+////Click Event Listeners//////
 searchButton.addEventListener("click", () => handelSearch(search.value));
+////Key Press Event Listeners//////
 search.addEventListener("keypress", (e) => {
   if (e.key === "Enter") {
     handelSearch();
   }
 });
+
+///////////////click event listener//////////
 currentLocation.addEventListener("click", getCurrentLocation);
 
+//////////////Search Functionality///
 async function handelSearch() {
   const data = await fetchWether(search.value);
   updateRecentSearch();
   displayWeather(data);
 }
 
+///////////////function to convertion kelvin to celcious//////////
 function kelvinToCelsius(kelvin) {
   return kelvin - 273.15;
 }
 
 ////////////fetch wether from search/////////////////
-
 async function fetchWether(name) {
   let data1 = [];
   let data2 = [];
+  turnOnSpinner();
   try {
     const req = await fetch(
       `https://api.openweathermap.org/data/2.5/weather?q=${name}&appid=${API_KEY}`
@@ -41,6 +47,7 @@ async function fetchWether(name) {
     saveToLocalStorage(data.name);
     data1 = data;
   } catch (err) {
+    turnOffSpinner();
     showPopupMessage(err.message);
     console.log("error", err.message);
   }
@@ -57,12 +64,13 @@ async function fetchWether(name) {
   } catch (err) {
     console.log("error", err.message);
   }
-
+  turnOffSpinner();
   return { data1, data2 };
 }
 
-////////////////////current location////////////////////
+////////////////////current location function////////////////////
 function getCurrentLocation() {
+  turnOnSpinner();
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition((position) => {
       const { latitude, longitude } = position.coords;
@@ -72,14 +80,17 @@ function getCurrentLocation() {
         .then((response) => response.json())
         .then(async (data) => {
           const res = await fetchWether(data.name);
+          turnOffSpinner;
           displayWeather(res);
         });
     });
   } else {
+    turnOffSpinner();
     alert("Geolocation is not supported by this browser.");
   }
 }
-////////////////////Local Storage//////////////////
+
+////////////////////Save search to local storage//////////////////
 function saveToLocalStorage(city) {
   let cities = JSON.parse(localStorage.getItem("recentCities")) || [];
 
@@ -103,6 +114,7 @@ function saveToLocalStorage(city) {
   updateRecentSearch();
 }
 
+//////// Update the dropdown options/////////
 function updateRecentSearch() {
   const cities = JSON.parse(localStorage.getItem("recentCities")) || [];
   const recentCitiesContainer = document.querySelector(
@@ -132,6 +144,7 @@ function updateRecentSearch() {
   dropdown.addEventListener("change", handleCitySelection);
 }
 
+////////////function to select city from rescent search options/////////
 async function handleCitySelection(event) {
   const selectedCity = event.target.value;
   if (selectedCity) {
@@ -144,9 +157,18 @@ function loadRecentSearches() {
   updateRecentSearch();
 }
 
+///////when the screen load it update the recent search/////////
 window.onload = () => {
   loadRecentSearches();
 };
+
+///////////////////Loading spinner functionality///////////////////
+function turnOnSpinner() {
+  loadingSpinner.style.display = "block";
+}
+function turnOffSpinner() {
+  loadingSpinner.style.display = "none";
+}
 
 ///////////////////Display data from search ///////////////////
 function displayWeather({ data1, data2 }) {
@@ -178,6 +200,7 @@ function displayMainForcast(data1) {
   humidity.style.width = `${data1.main.humidity}%`;
 }
 
+/////////////////Display 5 days forcast data////////////////
 function display5DaysForcase(data) {
   const forcastDays = document.querySelector("#forcast-days");
   console.log(data);
@@ -213,8 +236,7 @@ function display5DaysForcase(data) {
   forcastDays.innerHTML = forecastHTML; // Set innerHTML once
 }
 
-///handel error
-
+/////////////////show error message on pop up/////////////////
 function showPopupMessage(message) {
   const popup = document.getElementById("popup-message");
   if (message === "Error 404: Not Found") {

@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Weather Forcast</title>
     <link href="./output.css" rel="stylesheet" />
     <link
       rel="stylesheet"
@@ -13,14 +13,22 @@
       referrerpolicy="no-referrer"
     />
   </head>
-  <body class="bg-gradient-to-br from-violet-400 to-violet-600 py-5 px-20">
-    <!-----Header section---->
-    <header class="flex justify-between text-violet-50">
-      <h1 class="font-bold">WEATHER FORECAST</h1>
+
+  <!-------////////////Body///////////////------->
+
+  <body
+    class="min-h-screen h-full bg-gradient-to-br from-violet-400 to-violet-600 py-5 px-2 sm:px-10 xl:px-20"
+  >
+    <!-----///////////Header section////////////---->
+    <header class="flex justify-between items-center text-violet-50">
+      <h1 class="font-bold text-sm sm:text-base">WEATHER FORECAST</h1>
       <div id="recent-cities-container">
-        <label for="select-place">Recent search:</label>
+        <!---------/////////Recent Select city////////-->
+        <label class="block sm:inline-block mb-2 sm:mb-0" for="select-place"
+          >Recent search:</label
+        >
         <select
-          class="text-stone-600 py-1 focus:outline-none px-4 rounded-full"
+          class="text-stone-600 py-1 focus:outline-none px-4 rounded-full block sm:inline-block"
           name="recent-cities"
           id="select-place"
         >
@@ -29,13 +37,16 @@
       </div>
     </header>
     <main>
-      <!----search-section----->
-      <section class="flex gap-2 justify-center items-center my-10">
+      <!----///////////////Search-section///////////----->
+      <section
+        class="flex flex-col sm:flex-row gap-4 sm:gap-2 justify-center items-center my-10"
+      >
+        <!-------//////////Search Input//////////----->
         <div class="relative">
           <input
             placeholder="Search Location"
             id="search"
-            class="rounded-full py-2 px-4 w-96 focus:outline-violet-400 shadow-md"
+            class="rounded-full py-2 px-4 w-72 sm:w-96 focus:outline-violet-400 shadow-md"
           />
           <button
             class="absolute right-3 top-2 text-stone-500"
@@ -44,48 +55,65 @@
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
         </div>
-
+        <!-------//////////Weather Forcast based on Currenrt location//////////----->
         <button
-          class="px-4 rounded-full py-2 border text-violet-50 hover:bg-violet-50 hover:text-violet-500 shadow-md"
+          class="px-4 text-sm md:text-base rounded-full py-2 border text-violet-50 hover:bg-violet-50 hover:text-violet-500 shadow-md"
           id="get-current-location"
         >
           Use current location
         </button>
       </section>
-      <!---New section-->
+      <!-------//////////////Loading spinner/////////////------>
+      <div
+        id="loadingSpinner"
+        class="bg-violet-400 rounded-md px-14 py-10 text-stone-50 shadow-lg w-full h-[100vh] flex items-center justify-center fixed top-0 left-0 z-30 bg-opacity-50"
+        style="display: none"
+      >
+        <div
+          class="text-violet-50 text-4xl flex items-center justify-center h-full"
+        >
+          <i class="animate-spin fa-solid fa-spinner"></i>
+        </div>
+      </div>
 
+      <!-----------///////////Weather Forcast Section//////////--------------->
       <section
-        class="w-full bg-violet-400 rounded-md px-14 py-10 text-stone-50 shadow-lg"
+        class="w-full bg-violet-400 rounded-md px-8 sm:px-4 md:px-8 lg:px-14 py-10 text-stone-50 shadow-lg"
       >
         <h2 class="uppercase font-bold mb-5">Current Weather</h2>
-        <div class="flex justify-between">
+        <div
+          class="flex flex-col sm:items-start sm:flex-row justify-between gap-10 sm:gap-0"
+        >
           <section>
             <div class="uppercase text-sm font-semibold" id="location">
               _ _ _ _ _ _
             </div>
-            <div class="ml-10 text-7xl my-5">
+            <div
+              class="ml-0 sm:ml-10 sm:my-5 text-4xl md:text-5xl lg:text-7xl text-center"
+            >
               <span id="main-wether-logo">
+                <!-------////////Weather Image/////////----->
                 <img
                   id="main-weather-img"
-                  class="h-36 inline-block"
+                  class="h-44 sm:h-28 lg:h-36 inline-block"
                   src="https://openweathermap.org/img/wn/10d@2x.png"
                   alt="weather"
                 />
               </span>
-              <span id="main-temp">_ _</span><sup>&deg;</sup>C
+              <span id="main-temp" class="">_ _</span><sup>&deg;</sup>C
             </div>
-            <div id="weather-description" class="ml-10 text-sm uppercase">
+            <div id="weather-description" class="sm:ml-10 text-sm uppercase">
               _ _ _ _ _ _ _ _
             </div>
           </section>
-          <!----weather detail section-->
+          <!----/////////weather detail section/////////////-->
           <section>
-            <div class="inline-block">
-              <div class="uppercase text-sm font-semibold">
+            <div class="flex justify-between items-center sm:inline-block">
+              <div class="uppercase text-base sm:text-sm font-semibold">
                 Feels like <span id="main-feels-like">_ _</span><sup>&deg;</sup>
               </div>
-              <!---Temperature-->
-              <div class="flex justify-between w-36 text-sm my-5">
+              <!---///////////Temperature min max///////////-->
+              <div class="flex justify-between w-36 text-base sm:text-sm my-5">
                 <div>
                   <i class="fa-solid fa-arrow-up text-red-500"></i
                   ><span id="temp-up" class="ml-1">_ _</span><sup>&deg;</sup>C
@@ -96,11 +124,12 @@
                 </div>
               </div>
             </div>
-            <div>
-              <span class="inline-block w-24"
-                ><i class="fa-solid fa-droplet mr-2"></i>Humidity</span
-              >
-              <div class="inline-block bg-violet-200 h-1 w-40">
+            <!--------///////Percentage Bar///////------>
+            <div class="flex items-center justify-between">
+              <div class="w-48">
+                <i class="fa-solid fa-droplet mr-2"></i>Humidity
+              </div>
+              <div class="inline-block bg-violet-200 h-1 w-[100%]">
                 <div
                   id="humidity-bar"
                   class="bg-violet-600 h-1 z-10"
@@ -108,11 +137,11 @@
                 ></div>
               </div>
             </div>
-            <div>
-              <span class="inline-block w-24"
-                ><i class="fa-solid fa-cloud mr-2"></i>Clouds</span
-              >
-              <div class="inline-block bg-violet-200 h-1 w-40">
+            <div class="flex items-center justify-between">
+              <div class="w-48">
+                <i class="fa-solid fa-cloud mr-2"></i>Clouds
+              </div>
+              <div class="inline-block bg-violet-200 h-1 w-[100%]">
                 <div
                   id="clouds-bar"
                   class="bg-violet-600 h-1 z-10"
@@ -127,19 +156,25 @@
           </section>
         </div>
       </section>
+      <!--////////////Five Days weather Forcast Section/////////////-->
       <section
-        class="w-full bg-violet-200 shadow-lg rounded-md px-14 py-10 mb-10 text-stone-500 mt-10"
+        class="w-full bg-violet-200 shadow-lg rounded-md px-7 xl:px-10 py-10 mb-10 text-stone-500 mt-10"
       >
         <h2 class="uppercase font-bold">5 Days Weather Forcast</h2>
-        <div id="forcast-days" class="mt-5 flex justify-between"></div>
+
+        <div
+          id="forcast-days"
+          class="mt-5 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
+        ></div>
       </section>
     </main>
+    <!----////////////////Footer/////////////////---->
     <footer
       class="flex justify-center items-center my-10 text-sm text-violet-400"
     >
       <div>&copy; Created & Designed by Anikat</div>
     </footer>
-    <!-------------Error Pop up------->
+    <!-----/////////Pop Up Error Message//////////------->
     <div
       id="popup-message"
       class="fixed top-10 left-[50%] -translate-x-[50%] bg-red-50 shadow-2xl border-2 border-red-200 py-2 px-4 rounded-full transition-opacity duration-300 z-10"
@@ -147,6 +182,7 @@
     >
       Error message goes here
     </div>
+
     <script src="index.js"></script>
   </body>
 </html>
